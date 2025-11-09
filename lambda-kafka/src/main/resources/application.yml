@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: lambda-kafka
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: lambda-group
+      auto-offset-reset: earliest
+
+logging:
+  level:
+    root: INFO

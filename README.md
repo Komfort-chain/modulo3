@@ -1,92 +1,99 @@
-# 🧩 Módulo 3 — Função Lambda com Kafka (Komfort Chain)
+# Módulo 3 — Função Lambda com Kafka (Komfort Chain)
 
-O **Módulo 3** faz parte da suíte **Komfort Chain**, e tem como objetivo demonstrar a integração entre **Kafka** e uma **função Lambda**.  
-A aplicação escuta mensagens publicadas em um tópico Kafka e exibe no console a saída:
+O **Módulo 3** integra a suíte **Komfort Chain** e tem como objetivo demonstrar a comunicação entre uma **função Lambda** e o **Apache Kafka**.  
+A aplicação escuta mensagens publicadas em um tópico Kafka e exibe no console:
 
 ```
-
 A mensagem chegou: <mensagem>
-
 ```
 
-Este módulo foi desenvolvido para reforçar o entendimento sobre **mensageria, processamento assíncrono e conteinerização de funções serverless**.
+O módulo reforça os conceitos de **mensageria distribuída**, **processamento assíncrono** e **conteinerização de aplicações serverless**.
 
 ---
 
-## 🧠 Tecnologias Utilizadas
+## Badges de Status
 
-| Categoria        | Tecnologia                |
-| ---------------- | -------------------------- |
-| Linguagem        | Java 21                    |
-| Framework        | Spring Boot 3.5.7 (Spring Kafka) |
-| Mensageria       | Apache Kafka 7.5.1         |
-| Orquestração     | Docker e Docker Compose    |
-| Logs             | Console + Docker Logs      |
-| Build            | Maven                      |
-| Deploy CI/CD     | GitHub Actions + Docker Hub |
-| Arquitetura      | Clean Architecture / Event-driven |
+[![Docker Publish](https://github.com/Komfort-chain/modulo3/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/Komfort-chain/modulo3/actions/workflows/docker-publish.yml)
+[![Docker Hub](https://img.shields.io/badge/DockerHub-magyodev/modulo3--lambda--kafka-blue)](https://hub.docker.com/repository/docker/magyodev/modulo3-lambda-kafka)
+[![Java](https://img.shields.io/badge/Java-21-red)]()
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.7-brightgreen)]()
 
 ---
 
-## ⚙️ Estrutura do Projeto
+## Tecnologias Utilizadas
+
+| Categoria    | Tecnologia                        |
+| ------------ | --------------------------------- |
+| Linguagem    | Java 21                           |
+| Framework    | Spring Boot 3.5.7 (Spring Kafka)  |
+| Mensageria   | Apache Kafka 7.5.1                |
+| Orquestração | Docker e Docker Compose           |
+| Logs         | Console + Docker Logs             |
+| Build        | Maven (Wrapper)                   |
+| CI/CD        | GitHub Actions + Docker Hub       |
+| Arquitetura  | Clean Architecture / Event-driven |
+
+---
+
+## Estrutura do Projeto
 
 ```
-
 lambda-kafka/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── pom.xml
 ├── src/
-│   ├── main/java/com/cabos/lambda/
+│   ├── main/java/com/cabos/lambda_kafka/
 │   │   ├── consumer/
+│   │   │   └── KafkaMessageListener.java
+│   │   ├── application/
 │   │   │   └── KafkaConsumerService.java
-│   │   ├── LambdaKafkaApplication.java
-│   │   └── config/
-│   │       └── KafkaConfig.java
+│   │   ├── config/
+│   │   │   └── KafkaConfig.java
+│   │   └── LambdaKafkaApplication.java
 │   └── resources/
 │       └── application.yml
-
 ```
 
-Fluxo:
-```
+Fluxo principal:
 
+```
 Kafka Topic → Lambda Consumer → Console Output
-
-````
+```
 
 ---
 
-## 🚀 Como Executar Localmente
+## Execução Local
 
-### 1️⃣ Clonar o repositório
-````bash
+### 1. Clonar o repositório
+
+```bash
 git clone https://github.com/Komfort-chain/modulo3.git
 cd modulo3/lambda-kafka
-````
+```
 
-### 2️⃣ Buildar e subir containers
+### 2. Construir e subir os containers
 
-````bash
+```bash
 docker compose build
 docker compose up -d
-````
+```
 
-Esses comandos:
+Esses comandos executam:
 
-* Sobem o Kafka e o Zookeeper;
-* Constroem a imagem da função Lambda;
-* Iniciam a Lambda já conectada ao tópico Kafka.
+- Inicialização do Kafka e do Zookeeper
+- Construção da imagem da função Lambda
+- Conexão automática da Lambda ao tópico Kafka
 
-Verifique se todos estão ativos:
+Verificar os serviços ativos:
 
-````bash
+```bash
 docker ps
-````
+```
 
 ---
 
-## 🧾 Serviços Disponíveis
+## Serviços Disponíveis
 
 | Serviço          | Porta | Descrição                                   |
 | ---------------- | ----- | ------------------------------------------- |
@@ -96,164 +103,144 @@ docker ps
 
 ---
 
-## 📡 Testando a Função
+## Teste da Função
 
-### 🔹 1️⃣ Enviar mensagem via Kafka CLI
+### 1. Enviar mensagem via Kafka CLI
 
-Com o Kafka rodando no container, execute:
-
-````bash
-docker exec -it kafka kafka-console-producer.sh \
-  --broker-list localhost:9092 --topic meu-topico
-````
+```bash
+docker exec -it kafka kafka-console-producer.sh   --broker-list localhost:9092 --topic meu-topico
+```
 
 Digite qualquer mensagem:
 
-````
+```
 Mensagem de teste do módulo 3
-````
+```
 
-Verifique o log da Lambda:
+Visualize a saída no log:
 
-````bash
+```bash
 docker logs -f lambda-kafka
-````
+```
+
+Resultado:
+
+```
+A mensagem chegou: Mensagem de teste do módulo 3
+```
+
+---
+
+### 2. Teste via REST Proxy (opcional)
+
+**POST** `http://localhost:8082/topics/meu-topico`  
+**Header:** `Content-Type: application/vnd.kafka.json.v2+json`  
+**Body:**
+
+```json
+{
+  "records": [{ "value": "Mensagem publicada via REST Proxy" }]
+}
+```
 
 Saída esperada:
 
-````
-A mensagem chegou: Mensagem de teste do módulo 3
-````
+```
+A mensagem chegou: Mensagem publicada via REST Proxy
+```
 
 ---
 
-### 🔹 2️⃣ Testar via REST Proxy (opcional)
+## Deploy Automatizado (CI/CD)
 
-Se estiver usando **Confluent REST Proxy**, envie a mensagem com o Postman:
+O pipeline de CI/CD utiliza o **GitHub Actions** e o **Docker Hub**.  
+Cada _push_ na branch `main` executa automaticamente:
 
-**POST**
+1. Compilação da aplicação com o Maven Wrapper
+2. Construção da imagem Docker
+3. Publicação da imagem no Docker Hub
 
-````
-http://localhost:8082/topics/meu-topico
-````
+### Arquivo de workflow (.github/workflows/docker-publish.yml)
 
-**Headers**
-
-````
-Content-Type: application/vnd.kafka.json.v2+json
-````
-
-**Body**
-
-````json
-{
-  "records": [
-    { "value": "Olá Lambda do módulo 3!" }
-  ]
-}
-````
-
-Resultado nos logs:
-
-````
-A mensagem chegou: Olá Lambda do módulo 3!
-````
-
----
-
-### 🔹 3️⃣ Teste alternativo via endpoint temporário (opcional)
-
-Durante o desenvolvimento, é possível expor um endpoint para simular mensagens:
-
-**POST**
-
-````
-http://localhost:8080/test
-````
-
-**Body**
-
-````json
-"Mensagem simulada"
-````
-
-Log esperado:
-
-````
-A mensagem chegou: Mensagem simulada
-````
-
----
-
-## 🐳 Deploy e Publicação no Docker Hub
-
-### Workflow do GitHub Actions
-
-O pipeline de CI/CD faz:
-
-1. **Build** da imagem Docker da Lambda;
-2. **Login** no Docker Hub via secrets;
-3. **Push** da imagem com tag `latest`.
-
-Exemplo de trecho no `.github/workflows/docker.yml`:
-
-````yaml
-name: Build and Push Lambda Image
+```yaml
+name: Lambda Kafka - Docker Publish
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t magyodev/modulo3-lambda-kafka .
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
 
-      - name: Push to Docker Hub
+      - name: Build project with Maven
         run: |
-          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          docker push magyodev/modulo3-lambda-kafka:latest
-````
+          cd lambda-kafka
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./lambda-kafka
+          file: ./lambda-kafka/Dockerfile
+          push: true
+          tags: |
+            magyodev/modulo3-lambda-kafka:latest
+            magyodev/modulo3-lambda-kafka:${{ github.sha }}
+```
+
+Imagem disponível em:  
+👉 [Docker Hub — magyodev/modulo3-lambda-kafka](https://hub.docker.com/repository/docker/magyodev/modulo3-lambda-kafka)
 
 ---
 
-## 🔍 Logs e Monitoramento
+## Logs e Monitoramento
 
-Exibir logs em tempo real:
+Visualizar logs em tempo real:
 
-````bash
+```bash
 docker logs -f lambda-kafka
-````
+```
 
-Cada mensagem consumida do tópico aparecerá no console:
+Cada mensagem consumida do tópico será exibida no console:
 
-````
+```
 A mensagem chegou: <conteúdo da mensagem>
-````
+```
 
 ---
 
-## 🧱 Estrutura de Mensagens Kafka
+## Estrutura de Mensagens
 
-**Tópico:** `meu-topico`
+**Tópico:** `meu-topico`  
 **Formato:** Texto simples (String)
 
-Exemplo de mensagem:
+Exemplo:
 
-````
+```
 "Nova mensagem enviada para a Lambda"
-````
+```
 
 ---
 
-## 🧭 Diagrama Simplificado
+## Diagrama Simplificado
 
-````
+```
 ┌───────────────┐
 │ Kafka Broker  │◄─── Produz mensagem
 └──────┬────────┘
@@ -263,14 +250,23 @@ Exemplo de mensagem:
 │ Lambda Kafka Consumer             │
 │ Exibe: "A mensagem chegou: <msg>" │
 └───────────────────────────────────┘
-````
+```
 
 ---
 
-## 👨‍💻 Autor
+## Contribuição
+
+1. Faça um fork do projeto
+2. Crie uma branch (`feature/minha-melhoria`)
+3. Faça o commit das alterações
+4. Envie um Pull Request
+
+---
+
+## Autor
 
 **Alan de Lima Silva (MagyoDev)**
 
-* **GitHub:** [https://github.com/MagyoDev](https://github.com/MagyoDev)
-* **E-mail:** [magyodev@gmail.com](mailto:magyodev@gmail.com)
-
+- GitHub: [https://github.com/MagyoDev](https://github.com/MagyoDev)
+- Docker Hub: [https://hub.docker.com/u/magyodev](https://hub.docker.com/u/magyodev)
+- E-mail: [magyodev@gmail.com](mailto:magyodev@gmail.com)

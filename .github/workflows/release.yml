@@ -1,0 +1,16 @@
+name: Create GitHub Release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate changelog
+        run: echo "Release generated at $(date)" > release_notes.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release_notes.txt

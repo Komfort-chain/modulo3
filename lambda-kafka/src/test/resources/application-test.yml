@@ -1,0 +1,8 @@
+# src/test/resources/application-test.yml
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+    producer:
+      retries: 0

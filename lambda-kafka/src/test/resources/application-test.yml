@@ -1,13 +1,11 @@
 spring:
-  main:
-    allow-bean-definition-overriding: true
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
       auto-offset-reset: earliest
-      enable-auto-commit: false
+      group-id: test-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
-      retries: 0
-logging:
-  level:
-    root: OFF
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer

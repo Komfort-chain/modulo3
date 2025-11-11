@@ -1,16 +1,56 @@
 name: Create GitHub Release
+
 on:
   push:
     tags:
       - "v*.*.*"
 
+permissions:
+  contents: write  # Necessário para criar releases e subir assets
+  packages: read
+
 jobs:
   release:
+    name: Create GitHub Release
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Generate changelog
-        run: echo "Release generated at $(date)" > release_notes.txt
-      - uses: softprops/action-gh-release@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
-          files: release_notes.txt
+          distribution: temurin
+          java-version: 21
+
+      - name: Build artifact with Maven
+        working-directory: lambda-kafka
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests=true
+        env:
+          MAVEN_OPTS: -Xmx2G
+
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          configuration: ".github/changelog-config.json"
+          toTag: ${{ github.ref_name }}
+          outputFile: release_notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Release ${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          files: |
+            lambda-kafka/target/lambda-kafka-*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

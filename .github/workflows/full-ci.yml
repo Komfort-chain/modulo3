@@ -17,7 +17,7 @@ jobs:
     # Adicionado: Serviços Kafka e Zookeeper
     services:
       zookeeper:
-        image: bitnami/zookeeper:3.9.1
+        image: bitnami/zookeeper:3.8.4
         ports:
           - 2181:2181
         options: >-

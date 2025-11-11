@@ -14,10 +14,9 @@ jobs:
     name: Build & Analyze (SonarCloud)
     runs-on: ubuntu-latest
 
-    # Adicionado: Serviços Kafka e Zookeeper
     services:
       zookeeper:
-        image: bitnami/zookeeper:latest
+        image: zookeeper:3.9.2
         ports:
           - 2181:2181
         options: >-
@@ -221,12 +220,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Empacotamento Maven
       - name: Package Lambda Kafka
         working-directory: lambda-kafka
         run: mvn -B clean package -DskipTests=true
 
-      # Build e push da imagem Docker
       - name: Build and push Lambda Kafka image
         uses: docker/build-push-action@v5
         with:

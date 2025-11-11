@@ -7,6 +7,9 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+  # --------------------------------------------------------
+  # JOB 1 — Build + Test + SonarCloud Analysis
+  # --------------------------------------------------------
   build-and-analyze:
     name: Build & Analyze (SonarCloud)
     runs-on: ubuntu-latest
@@ -23,14 +26,17 @@ jobs:
           --health-retries=5
 
       kafka:
-        image: apache/kafka:3.7.0
+        image: confluentinc/cp-kafka:7.6.0
         ports:
           - 9092:9092
         env:
-          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_BROKER_ID: 1
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
         options: >-
-          --health-cmd="kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"
+          --health-cmd="bash -c 'kafka-topics --bootstrap-server localhost:9092 --list || exit 1'"
           --health-interval=15s
           --health-timeout=10s
           --health-retries=10
@@ -76,12 +82,12 @@ jobs:
       - name: Wait for Kafka readiness
         run: |
           echo "Waiting for Kafka to be ready..."
-          for i in {1..30}; do
+          for i in {1..40}; do
             if nc -z localhost 9092; then
               echo "Kafka is up!"
               break
             fi
-            echo "Waiting... ($i/30)"
+            echo "Waiting... ($i/40)"
             sleep 5
           done
 
@@ -119,6 +125,9 @@ jobs:
           name: surefire-reports
           path: lambda-kafka/target/surefire-reports/
 
+  # --------------------------------------------------------
+  # JOB 2 — OWASP Dependency-Check (Smart Fallback)
+  # --------------------------------------------------------
   security-scan:
     name: OWASP Dependency-Check (Smart Offline Fallback)
     runs-on: ubuntu-latest
@@ -174,6 +183,9 @@ jobs:
           path: '**/reports/**'
           if-no-files-found: ignore
 
+  # --------------------------------------------------------
+  # JOB 3 — Docker Build & Push
+  # --------------------------------------------------------
   docker-build:
     name: Docker Build & Push
     runs-on: ubuntu-latest
@@ -210,10 +222,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Empacotamento Maven
       - name: Package Lambda Kafka
         working-directory: lambda-kafka
         run: mvn -B clean package -DskipTests=true
 
+      # Build e push da imagem Docker
       - name: Build and push Lambda Kafka image
         uses: docker/build-push-action@v5
         with:

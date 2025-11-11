@@ -1,8 +1,13 @@
-# src/test/resources/application-test.yml
 spring:
+  main:
+    allow-bean-definition-overriding: true
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
       auto-offset-reset: earliest
+      enable-auto-commit: false
     producer:
       retries: 0
+logging:
+  level:
+    root: OFF

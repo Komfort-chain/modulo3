@@ -1,4 +1,4 @@
-name: Komfort Chain - Lambda Kafka CI/CD (Build + Security + Docker)
+name: Komfort Chain - Full CI/CD (Lambda Kafka + Security + Docker)
 
 on:
   push:
@@ -13,6 +13,31 @@ jobs:
   build-and-analyze:
     name: Build & Analyze (SonarCloud)
     runs-on: ubuntu-latest
+
+    # Adicionado: Serviços Kafka e Zookeeper
+    services:
+      zookeeper:
+        image: bitnami/zookeeper:3.9
+        ports:
+          - 2181:2181
+        options: >-
+          --health-cmd="echo ruok | nc 127.0.0.1 2181 || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      kafka:
+        image: bitnami/kafka:3.7
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          ALLOW_PLAINTEXT_LISTENER: "yes"
+        options: >-
+          --health-cmd="kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"
+          --health-interval=15s
+          --health-timeout=10s
+          --health-retries=10
 
     permissions:
       contents: read
@@ -38,6 +63,13 @@ jobs:
           java -version
           mvn -v
 
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -45,9 +77,11 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and test Lambda Kafka
+      - name: Build and test (Lambda Kafka)
         working-directory: lambda-kafka
-        run: mvn -B clean verify -DskipTests=false
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: mvn -B clean verify -Dspring.kafka.bootstrap-servers=localhost:9092 -DskipTests=false
 
       - name: SonarCloud Analysis
         working-directory: lambda-kafka
@@ -64,6 +98,12 @@ jobs:
             -Dsonar.java.binaries=target/classes \
             -Dsonar.junit.reportPaths=target/surefire-reports \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
+      - name: Upload JaCoCo Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-reports
+          path: lambda-kafka/target/site/jacoco/
 
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
@@ -104,17 +144,17 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Run Dependency-Check (Lambda Kafka)
+      - name: Run Dependency-Check (Lambda Kafka - Smart Mode)
         working-directory: lambda-kafka
         run: |
           mkdir -p ../reports/lambda-kafka
-          echo "Running OWASP Dependency-Check for Lambda Kafka..."
+          echo "Running OWASP Dependency-Check for Lambda Kafka (with fallback)..."
           mvn -B org.owasp:dependency-check-maven:10.0.4:check \
             -Dformat=ALL \
             -DfailOnError=false \
             -DoutputDirectory=../reports/lambda-kafka \
             -Dnvd.api.key=${{ secrets.NVD_API_KEY }} || (
-              echo "NVD update failed, retrying offline..."
+              echo "NVD update failed (likely CVSSv4 SAFETY bug). Retrying offline..."
               mvn -B org.owasp:dependency-check-maven:10.0.4:check \
                 -Dformat=ALL \
                 -DfailOnError=false \
@@ -126,7 +166,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-reports
-          path: reports/
+          path: '**/reports/**'
+          if-no-files-found: ignore
 
   # --------------------------------------------------------
   # JOB 3 — Docker Build & Push
@@ -167,15 +208,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Empacotamento Maven
       - name: Package Lambda Kafka
         working-directory: lambda-kafka
         run: mvn -B clean package -DskipTests=true
 
+      # Build e push da imagem Docker
       - name: Build and push Lambda Kafka image
         uses: docker/build-push-action@v5
         with:
           context: ./lambda-kafka
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/modulo3-lambda-kafka:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/modulo3-lambda-kafka:${{ github.run_number }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/lambda-kafka:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/lambda-kafka:${{ github.run_number }}

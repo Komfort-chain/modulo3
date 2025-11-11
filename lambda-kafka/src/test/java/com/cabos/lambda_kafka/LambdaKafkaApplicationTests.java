@@ -2,13 +2,16 @@ package com.cabos.lambda_kafka;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+// Este teste é desabilitado para execução em CI/CD sem Kafka real.
+// Serve apenas para validar que o build e o empacotamento estão corretos.
+@SpringBootTest(classes = LambdaKafkaApplication.class)
+@ActiveProfiles("test")
 class LambdaKafkaApplicationTests {
 
     @Test
     void contextLoads() {
-        // Teste de contexto desabilitado para execução CI/CD sem Kafka ativo.
-        System.out.println("Contexto de teste carregado com sucesso (mock).");
+        System.out.println("Contexto carregado em modo de teste sem Kafka ativo.");
     }
 }

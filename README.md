@@ -15,7 +15,7 @@ O módulo reforça os conceitos de **mensageria distribuída**, **processamento 
 
 [![CI/CD](https://github.com/Komfort-chain/modulo3/actions/workflows/full-ci.yml/badge.svg)](https://github.com/Komfort-chain/modulo3/actions/workflows/full-ci.yml)
 [![Release](https://github.com/Komfort-chain/modulo3/actions/workflows/release.yml/badge.svg)](https://github.com/Komfort-chain/modulo3/actions/workflows/release.yml)
-[![Docker Hub](https://img.shields.io/badge/DockerHub-magyodev/modulo3--lambda--kafka-blue)](https://hub.docker.com/repository/docker/magyodev/modulo3-lambda-kafka)
+[![Docker Hub](https://img.shields.io/badge/DockerHub-magyodev/lambda--kafka-blue)](https://hub.docker.com/repository/docker/magyodev/lambda-kafka)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Komfort-chain_modulo3&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Komfort-chain_modulo3)
 ![Java 21](https://img.shields.io/badge/Java-21-red)
 ![Spring Boot 3.5.7](https://img.shields.io/badge/Spring_Boot-3.5.7-brightgreen)

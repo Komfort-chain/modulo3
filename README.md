@@ -10,8 +10,8 @@ A aplicação conecta-se a um tópico Kafka, permanece em execução contínua e
 
 [![Full CI/CD](https://github.com/Komfort-chain/modulo3/actions/workflows/full-ci.yml/badge.svg)](https://github.com/Komfort-chain/modulo3/actions/workflows/full-ci.yml)
 [![Release](https://github.com/Komfort-chain/modulo3/actions/workflows/release.yml/badge.svg)](https://github.com/Komfort-chain/modulo3/actions/workflows/release.yml)
-[![Docker Hub](https://img.shields.io/badge/DockerHub-magyodev/modulo3--lambda--kafka-blue)](https://hub.docker.com/repository/docker/magyodev/modulo3-lambda-kafka)
-[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Komfort-chain_modulo3&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Komfort-chain_modulo3)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Komfort-chain_modulo3\&metric=alert_status)](https://sonarcloud.io/summary/overall?id=Komfort-chain_modulo3)
+[![Docker Hub](https://img.shields.io/badge/DockerHub-magyodev%2Fmodulo3--lambda--kafka-blue?logo=docker)](https://hub.docker.com/r/magyodev/modulo3-lambda-kafka)
 ![Java 21](https://img.shields.io/badge/Java-21-red)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.7-brightgreen)
 

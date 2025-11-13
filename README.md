@@ -1,44 +1,63 @@
-# Módulo 3 — Função Lambda com Kafka (Komfort Chain)
+# **Módulo 3 — Lambda Consumer com Apache Kafka (Komfort Chain)**
 
-O **Módulo 3** integra a suíte **Komfort Chain** e demonstra a comunicação entre uma **função Lambda** e o **Apache Kafka**.  
-A aplicação consome mensagens publicadas em um tópico Kafka e exibe no console:
+O **Módulo 3** da suíte **Komfort Chain** demonstra um cenário real de **consumo assíncrono de eventos**, utilizando uma aplicação estilo **Lambda** (serverless containerizada) integrada ao **Apache Kafka**.
 
-```
-A mensagem chegou: <mensagem>
-```
-
-O módulo reforça os conceitos de **mensageria distribuída**, **processamento assíncrono** e **conteinerização de aplicações serverless**.
+A aplicação conecta-se a um tópico Kafka, permanece em execução contínua e registra no console todas as mensagens recebidas, reforçando conceitos essenciais de **event-driven architecture**, **mensageria distribuída**, **resiliência** e **observabilidade**.
 
 ---
 
-## Badges de Status
+## **Status do Projeto**
 
-[![CI/CD](https://github.com/Komfort-chain/modulo3/actions/workflows/full-ci.yml/badge.svg)](https://github.com/Komfort-chain/modulo3/actions/workflows/full-ci.yml)
+[![Full CI/CD](https://github.com/Komfort-chain/modulo3/actions/workflows/full-ci.yml/badge.svg)](https://github.com/Komfort-chain/modulo3/actions/workflows/full-ci.yml)
 [![Release](https://github.com/Komfort-chain/modulo3/actions/workflows/release.yml/badge.svg)](https://github.com/Komfort-chain/modulo3/actions/workflows/release.yml)
-[![Docker Hub](https://img.shields.io/badge/DockerHub-magyodev/lambda--kafka-blue)](https://hub.docker.com/repository/docker/magyodev/lambda-kafka)
+[![Docker Hub](https://img.shields.io/badge/DockerHub-magyodev/modulo3--lambda--kafka-blue)](https://hub.docker.com/repository/docker/magyodev/modulo3-lambda-kafka)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Komfort-chain_modulo3&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Komfort-chain_modulo3)
 ![Java 21](https://img.shields.io/badge/Java-21-red)
-![Spring Boot 3.5.7](https://img.shields.io/badge/Spring_Boot-3.5.7-brightgreen)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.7-brightgreen)
 
 ---
 
-## Tecnologias Utilizadas
+## **Tecnologias Utilizadas**
 
-| Categoria     | Tecnologia                           |
-| ------------- | ------------------------------------ |
-| Linguagem     | Java 21                              |
-| Framework     | Spring Boot 3.5.7 (Spring Kafka)     |
-| Mensageria    | Apache Kafka 7.5.1                   |
-| Orquestração  | Docker e Docker Compose              |
-| Logs          | Console + Logback                    |
-| Build         | Maven (Wrapper)                      |
-| Análise Local | SonarQube Community Edition (Docker) |
-| Análise Cloud | SonarCloud + OWASP Dependency-Check  |
-| Arquitetura   | Clean Architecture / Event-driven    |
+| Categoria            | Ferramenta / Tecnologia                   |
+| -------------------- | ----------------------------------------- |
+| **Linguagem**        | Java 21                                   |
+| **Framework**        | Spring Boot 3.5.7 + Spring Kafka          |
+| **Mensageria**       | Apache Kafka 7.6.0 + Zookeeper            |
+| **Log**              | Logback + Console                         |
+| **Testes**           | JUnit 5 + Spring Boot Test                |
+| **Análise Estática** | SonarCloud + OWASP Dependency-Check       |
+| **Containerização**  | Docker + Docker Compose                   |
+| **Arquitetura**      | Event-Driven • Clean Architecture • SOLID |
 
 ---
 
-## Estrutura do Projeto
+## **Arquitetura**
+
+Este módulo implementa um único serviço responsável por **consumir eventos de um tópico Kafka**, agindo como um *Lambda Listener*.
+
+### **Fluxo Arquitetural**
+
+```
+Produtor (qualquer origem)
+              │
+              ▼
+       ┌──────────────┐
+       │  Kafka Topic │
+       └───────┬──────┘
+               │
+               ▼
+ ┌────────────────────────────┐
+ │ Lambda Kafka Consumer      │
+ │ Logs: "A mensagem chegou"  │
+ └────────────────────────────┘
+```
+
+A aplicação inicia automaticamente, se conecta ao broker e fica aguardando novos eventos.
+
+---
+
+## **Estrutura do Projeto**
 
 ```
 modulo3/
@@ -46,17 +65,15 @@ modulo3/
 ├── README.md
 ├── .github/
 │   └── workflows/
-│       ├── full-ci.yml
-│       └── release.yml
+│       ├── full-ci.yml        # CI completo (Kafka Test, SonarCloud, OWASP)
+│       └── release.yml        # Criação de Releases + Docker Hub
 └── lambda-kafka/
     ├── Dockerfile
     ├── pom.xml
-    ├── mvnw
-    ├── mvnw.cmd
+    ├── mvnw / mvnw.cmd
     ├── src/
     │   ├── main/java/com/cabos/lambda_kafka/
     │   │   ├── application/service/KafkaConsumerService.java
-    │   │   ├── domain/Message.java
     │   │   ├── infrastructure/config/KafkaConfig.java
     │   │   ├── infrastructure/consumer/KafkaMessageListener.java
     │   │   ├── presentation/handler/GlobalExceptionHandler.java
@@ -65,38 +82,35 @@ modulo3/
     │   │   ├── application.yml
     │   │   ├── application.properties
     │   │   ├── logback-spring.xml
-    │   └── test/java/com/cabos/lambda_kafka/LambdaKafkaApplicationTests.java
-```
-
-Fluxo principal:
-
-```
-Kafka Topic → Lambda Consumer → Console Output
+    │   └── test/java/com/cabos/lambda_kafka/
+    │       └── LambdaKafkaApplicationTests.java
 ```
 
 ---
 
-## Execução Local
+## **Execução Local**
 
-### 1. Clonar o repositório
+### **1. Clonar o repositório**
 
 ```bash
 git clone https://github.com/Komfort-chain/modulo3.git
-cd modulo3/lambda-kafka
+cd modulo3
 ```
 
-### 2. Construir e subir os containers
+### **2. Construir e subir os containers**
 
 ```bash
 docker compose build
 docker compose up -d
 ```
 
-Esses comandos executam:
+### **Serviços iniciados**
 
-- Inicialização do Kafka e do Zookeeper
-- Construção da imagem Docker da função Lambda
-- Conexão automática da Lambda ao tópico Kafka
+| Serviço          | Porta | Descrição               |
+| ---------------- | ----- | ----------------------- |
+| Kafka Broker     | 9092  | Broker principal        |
+| Zookeeper        | 2181  | Coordenação do Kafka    |
+| Lambda Kafka App | —     | Consumidor de mensagens |
 
 Verificar os serviços ativos:
 
@@ -106,185 +120,121 @@ docker ps
 
 ---
 
-## Serviços Disponíveis
+## **Testes**
 
-| Serviço          | Porta | Descrição                                   |
-| ---------------- | ----- | ------------------------------------------- |
-| Zookeeper        | 2181  | Coordenação do Kafka                        |
-| Kafka Broker     | 9092  | Servidor de mensageria                      |
-| Lambda Kafka App | —     | Consumidor de mensagens (sem endpoint HTTP) |
+### **1. Enviar mensagens com Kafka CLI**
 
----
-
-## Teste da Função
-
-### 1. Enviar mensagem via Kafka CLI
+Abra um terminal:
 
 ```bash
-docker exec -it kafka kafka-console-producer.sh   --broker-list localhost:9092 --topic meu-topico
+docker exec -it kafka \
+  kafka-console-producer.sh --broker-list localhost:9092 --topic meu-topico
 ```
 
 Digite qualquer mensagem:
 
 ```
-Mensagem de teste do módulo 3
+Olá módulo 3!
 ```
 
-Visualize a saída no log:
+### **2. Visualizar logs do consumidor**
 
 ```bash
 docker logs -f lambda-kafka
-```
-
-Resultado esperado:
-
-```
-A mensagem chegou: Mensagem de teste do módulo 3
-```
-
----
-
-### 2. Teste via REST Proxy (opcional)
-
-**POST** `http://localhost:8082/topics/meu-topico`  
-**Header:** `Content-Type: application/vnd.kafka.json.v2+json`  
-**Body:**
-
-```json
-{
-  "records": [{ "value": "Mensagem publicada via REST Proxy" }]
-}
 ```
 
 Saída esperada:
 
 ```
-A mensagem chegou: Mensagem publicada via REST Proxy
+A mensagem chegou: Olá módulo 3!
 ```
 
 ---
 
-## Pipeline CI/CD
+## **Workflows CI/CD**
 
-O pipeline automatizado utiliza o **GitHub Actions**, **SonarCloud**, **SonarQube Local** e **Docker Hub**.  
-Cada _push_ na branch `main` executa automaticamente:
-
-1. Compilação e testes com Maven Wrapper
-2. Análise de qualidade com SonarQube local (modo offline)
-3. Análise remota com SonarCloud
-4. Verificação de vulnerabilidades via OWASP Dependency-Check
-5. Construção e publicação da imagem Docker no Docker Hub
+O projeto possui **dois workflows principais**:
 
 ---
 
-## Análise com SonarQube (Local)
+### **1. full-ci.yml — Pipeline Principal**
 
-Para executar a análise de qualidade de código localmente:
+Executa automaticamente em cada push ou pull request:
 
-### 1. Subir o container do SonarQube
-
-```bash
-docker run -d --name sonarqube   -p 9000:9000   sonarqube:community
-```
-
-Acesse no navegador:  
-[http://localhost:9000](http://localhost:9000)  
-Credenciais padrão:
-
-- Usuário: `admin`
-- Senha: `admin`
-
-### 2. Rodar a análise via Maven
-
-```bash
-cd lambda-kafka
-./mvnw clean verify sonar:sonar   -Dsonar.projectKey=modulo3-lambda-kafka   -Dsonar.host.url=http://localhost:9000   -Dsonar.login=seu_token_local
-```
-
-### 3. Gerar relatórios OWASP
-
-```bash
-./mvnw org.owasp:dependency-check-maven:check
-```
-
-Os relatórios serão gerados em:
-
-```
-lambda-kafka/target/dependency-check-report.html
-```
+| Etapa                      | Descrição                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------- |
+| **Build & Tests**          | Compila o Lambda Kafka e executa testes unitários e de integração (Kafka container real). |
+| **SonarCloud**             | Aplica análise estática, code smells, bugs e duplicações.                                 |
+| **OWASP Dependency-Check** | Varredura de vulnerabilidades com fallback offline.                                       |
+| **Upload Reports**         | Exporta Jacoco e Surefire Reports como artefatos.                                         |
+| **Docker Build & Push**    | Gera imagem da Lambda Kafka e publica tags `latest` e `run_number` no Docker Hub.         |
 
 ---
 
-## Qualidade e Segurança
+### **2. release.yml — Automação de Release**
 
-| Categoria         | Ferramenta / Ação                            | Descrição                                                     |
-| ----------------- | -------------------------------------------- | ------------------------------------------------------------- |
-| Análise Local     | SonarQube (Community Edition)                | Avaliação de bugs, code smells e duplicações de forma offline |
-| Análise Cloud     | [SonarCloud](https://sonarcloud.io)          | Métricas públicas e badges de qualidade                       |
-| Segurança         | [OWASP Dependency-Check](https://owasp.org/) | Verificação de vulnerabilidades em dependências Maven         |
-| Build Seguro      | Maven + GitHub Actions                       | Ambiente isolado para execução e testes                       |
-| Deploy Automático | Docker Hub                                   | Publicação contínua das imagens da suíte Komfort Chain        |
+Gatilhos:
+
+* Criação de Tag
+* Criação de Release no GitHub
+
+Ações:
+
+* Build completo do projeto
+* Build & Push exclusivo com a tag da release
+* Publicação no Docker Hub com semver (`v1.0.0`)
 
 ---
 
-## Logs e Monitoramento
+## **Imagem Docker Oficial**
 
-Visualizar logs em tempo real:
+A imagem da Lambda Kafka é publicada automaticamente no Docker Hub:
+
+| Componente            | Imagem                          |
+| --------------------- | ------------------------------- |
+| Lambda Kafka Consumer | `magyodev/modulo3-lambda-kafka` |
+
+Tags disponíveis:
+
+* `latest`
+* `${run_number}` (CI/CD)
+* `vX.Y.Z` (Releases)
+
+---
+
+## **Observabilidade**
+
+Visualização de logs:
 
 ```bash
 docker logs -f lambda-kafka
 ```
 
-Cada mensagem consumida do tópico será exibida no console:
+O serviço utiliza **Logback**, com configuração padronizada para:
 
-```
-A mensagem chegou: <conteúdo da mensagem>
-```
-
----
-
-## Estrutura de Mensagens
-
-**Tópico:** `meu-topico`  
-**Formato:** Texto simples (String)
-
-Exemplo:
-
-```
-"Nova mensagem enviada para a Lambda"
-```
+* Log estruturado
+* Timestamp
+* Contexto da execução
+* Tratamento de exceções (GlobalExceptionHandler)
 
 ---
 
-## Diagrama Simplificado
+## **Contribuição**
 
-```
-┌───────────────┐
-│ Kafka Broker  │◄── Produz mensagem
-└──────┬────────┘
-       │
-       ▼
-┌───────────────────────────────────┐
-│ Lambda Kafka Consumer             │
-│ Exibe: "A mensagem chegou: <msg>" │
-└───────────────────────────────────┘
-```
+1. Faça um fork do repositório
+2. Crie sua branch:
+
+   ```
+   feature/nova-melhoria
+   ```
+3. Commit semântico
+4. Abra um Pull Request para `main`
 
 ---
 
-## Contribuição
-
-1. Faça um fork do projeto
-2. Crie uma branch (`feature/minha-melhoria`)
-3. Faça o commit das alterações
-4. Envie um Pull Request
-
----
-
-## Autor
+## **Autor**
 
 **Alan de Lima Silva (MagyoDev)**
-
 - GitHub: [https://github.com/MagyoDev](https://github.com/MagyoDev)
 - Docker Hub: [https://hub.docker.com/u/magyodev](https://hub.docker.com/u/magyodev)
 - E-mail: [magyodev@gmail.com](mailto:magyodev@gmail.com)

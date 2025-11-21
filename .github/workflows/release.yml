@@ -6,7 +6,7 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: write  # Necessário para criar releases e subir assets
+  contents: write
   packages: read
 
 jobs:
@@ -48,8 +48,6 @@ jobs:
           name: "Release ${{ github.ref_name }}"
           tag_name: ${{ github.ref_name }}
           body_path: release_notes.md
-          draft: false
-          prerelease: false
           files: |
             lambda-kafka/target/lambda-kafka-*.jar
         env:

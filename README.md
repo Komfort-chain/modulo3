@@ -76,7 +76,6 @@ modulo3/
 ├── Dockerfile                      # Dockerfile para empacotar a aplicação
 ├── mvnw, mvnw.cmd, pom.xml         # Wrapper Maven e POM principal
 ├── README.md                       # Este arquivo
-├── repositorio_completo.txt        # Dump de estrutura + conteúdo (apoio)
 ├── .github/
 │   └── workflows/
 │       ├── full-ci.yml             # Pipeline de build, testes, Sonar e OWASP

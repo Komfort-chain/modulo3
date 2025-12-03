@@ -25,7 +25,6 @@ jobs:
           java-version: 21
 
       - name: Build artifact with Maven
-        working-directory: lambda-kafka
         run: |
           chmod +x mvnw
           ./mvnw clean package -DskipTests=true
@@ -49,6 +48,6 @@ jobs:
           tag_name: ${{ github.ref_name }}
           body_path: release_notes.md
           files: |
-            lambda-kafka/target/lambda-kafka-*.jar
+            target/modulo3-*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

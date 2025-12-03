@@ -66,14 +66,13 @@ jobs:
           done
 
       - name: Build Lambda Kafka
-        working-directory: lambda-kafka
+        # agora na raiz do repo
         run: |
           mvn -B clean verify \
             -Dspring.profiles.active=test \
             -DskipTests=false
 
       - name: SonarCloud
-        working-directory: lambda-kafka
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -91,7 +90,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco
-          path: lambda-kafka/target/site/jacoco/
+          path: target/site/jacoco/
 
   dependency-check:
     name: Dependências OWASP
@@ -115,18 +114,17 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
 
       - name: OWASP Scan
-        working-directory: lambda-kafka
         run: |
-          mkdir -p ../reports/lambda-kafka
+          mkdir -p reports/lambda-kafka
           mvn -B org.owasp:dependency-check-maven:10.0.4:check \
             -Dformat=ALL \
             -DfailOnError=false \
-            -DoutputDirectory=../reports/lambda-kafka \
+            -DoutputDirectory=reports/lambda-kafka \
             -Dnvd.api.key=${{ secrets.NVD_API_KEY }} || (
               mvn -B org.owasp:dependency-check-maven:10.0.4:check \
                 -Dformat=ALL \
                 -DfailOnError=false \
-                -DoutputDirectory=../reports/lambda-kafka \
+                -DoutputDirectory=reports/lambda-kafka \
                 -Danalyzer.nvd.api.enabled=false
             )
 
@@ -166,13 +164,12 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Package Lambda Kafka
-        working-directory: lambda-kafka
         run: mvn -B clean package -DskipTests=true
 
       - name: Build e Push
         uses: docker/build-push-action@v5
         with:
-          context: ./lambda-kafka
+          context: ./
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/lambda-kafka:latest
